@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"time"
 
 	"github.com/leonardodelira/go-grpc/pb"
 	"google.golang.org/grpc"
@@ -20,6 +21,7 @@ func main() {
 	client := pb.NewUserServiceClient(conn)
 	AddUser(client)
 	AddUserVerbose(client)
+	AddUsers(client)
 }
 
 func AddUser(client pb.UserServiceClient) {
@@ -51,4 +53,34 @@ func AddUserVerbose(client pb.UserServiceClient) {
 		}
 		fmt.Println(stream)
 	}
+}
+
+func AddUsers(client pb.UserServiceClient) {
+	users := []*pb.User{
+		{
+			Id:    "1",
+			Name:  "name 1",
+			Email: "email1@teste",
+		},
+		{
+			Id:    "2",
+			Name:  "name 2",
+			Email: "email2@teste",
+		},
+		{
+			Id:    "3",
+			Name:  "name 3",
+			Email: "email3@teste",
+		},
+	}
+
+	stream, _ := client.AddUsers(context.Background())
+
+	for _, user := range users {
+		stream.Send(user)
+		time.Sleep(time.Second * 2)
+	}
+
+	response, _ := stream.CloseAndRecv()
+	fmt.Println(response)
 }
